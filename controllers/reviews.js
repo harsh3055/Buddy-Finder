@@ -1,0 +1,21 @@
+const Studyhub = require('../models/studyhub');
+const Review = require('../models/review');
+
+module.exports.createReview = async (req, res) => {
+    const studyhub = await Studyhub.findById(req.params.id);
+    const review = new Review(req.body.review);
+    review.author = req.user._id;
+    studyhub.reviews.push(review);
+    await review.save();
+    await studyhub.save();
+    req.flash('success', 'Created new review!');
+    res.redirect(`/studyhubs/${studyhub._id}`);
+}
+
+module.exports.deleteReview = async (req, res) => {
+    const { id, reviewId } = req.params;
+    await Studyhub.findByIdAndUpdate(id, { $pull: { reviews: reviewId } });
+    await Review.findByIdAndDelete(reviewId);
+    req.flash('success', 'Successfully deleted review')
+    res.redirect(`/studyhubs/${id}`);
+}
